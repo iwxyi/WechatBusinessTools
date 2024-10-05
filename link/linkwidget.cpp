@@ -20,9 +20,6 @@ LinkWidget::LinkWidget(QWidget *parent)
     connect(st, &SignalTransfer::signalWxidChanged, this, [=](QString wxid) {
         ui->deanWxidEdit->setText(wxid);
     });
-    connect(st, &SignalTransfer::signalNickChanged, this, [=](QString nick) {
-        ui->deanNickLabel->setText(nick);
-    });
 }
 
 LinkWidget::~LinkWidget()

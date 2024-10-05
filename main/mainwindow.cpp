@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "appruntime.h"
+#include "signaltransfer.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -13,6 +14,11 @@ MainWindow::MainWindow(QWidget *parent)
     ar->setDeanService((qint64)deanService);
     deanService->init();
     deanService->start();
+
+
+    connect(st, &SignalTransfer::signalNickChanged, this, [=](QString nick) {
+        this->setWindowTitle("已Hook：" + nick);
+    });
 }
 
 MainWindow::~MainWindow()
