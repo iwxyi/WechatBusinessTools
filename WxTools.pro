@@ -1,4 +1,4 @@
-QT       += core gui
+QT       += core gui websockets
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -19,26 +19,32 @@ INCLUDEPATH += \
     main\
     global\
     utils\
-    service
+    service\
+    link
 
 SOURCES += \
     global/appruntime.cpp \
     global/usettings.cpp \
+    link/linkwidget.cpp \
     main/main.cpp \
     main/mainwindow.cpp \
     utils/fileutil.cpp \
-    utils/stringutil.cpp
+    utils/stringutil.cpp \
+    service/deanservice.cpp
 
 HEADERS += \
     global/appruntime.h \
     global/usettings.h \
+    link/linkwidget.h \
     main/mainwindow.h \
     utils/dlog.h \
     utils/fileutil.h \
     utils/myjson.h \
-    utils/stringutil.h
+    utils/stringutil.h \
+    service/deanservice.h
 
 FORMS += \
+    link/linkwidget.ui \
     main/mainwindow.ui
 
 # Default rules for deployment.
