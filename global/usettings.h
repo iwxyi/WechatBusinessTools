@@ -11,9 +11,12 @@ public:
 
     void setDeanServerUrl(QString url);
     QString deanServerUrl();
+    void setDeanWxid(QString wxid);
+    QString deanWxid();
 
 private:
     QString _deanServerUrl;
+    QString _deanWxid;
 };
 
 extern USettings *us;

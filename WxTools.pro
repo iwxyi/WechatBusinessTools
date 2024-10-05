@@ -34,6 +34,7 @@ SOURCES += \
 
 HEADERS += \
     global/appruntime.h \
+    global/signaltransfer.h \
     global/usettings.h \
     link/linkwidget.h \
     main/mainwindow.h \

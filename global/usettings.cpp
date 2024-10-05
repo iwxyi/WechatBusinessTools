@@ -9,7 +9,8 @@ USettings::USettings(QString path, QObject* parent) : Settings(path)
 
 void USettings::init()
 {
-    this->_deanServerUrl = this->getStr("deanServerUrl", "ws://192.168.0.103:7778");
+    this->_deanServerUrl = this->getStr("us/deanServerUrl", "ws://192.168.0.103:7778");
+    this->_deanWxid = this->getStr("us/deanWxid", "");
 }
 
 void USettings::setDeanServerUrl(QString url)
@@ -21,4 +22,14 @@ void USettings::setDeanServerUrl(QString url)
 QString USettings::deanServerUrl()
 {
     return this->_deanServerUrl;
+}
+
+void USettings::setDeanWxid(QString wxid)
+{
+    this->_deanWxid = wxid;
+}
+
+QString USettings::deanWxid()
+{
+    return this->_deanWxid;
 }

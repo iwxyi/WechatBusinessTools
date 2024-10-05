@@ -1,7 +1,9 @@
 #include "mainwindow.h"
 #include "usettings.h"
-
+#include "signaltransfer.h"
 #include <QApplication>
+
+SignalTransfer* st = new SignalTransfer();
 
 int main(int argc, char *argv[])
 {

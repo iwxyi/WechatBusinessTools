@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QWebSocket>
+#include "utils/myjson.h"
 
 class DeanService : public QObject
 {
@@ -12,6 +13,15 @@ public:
 
     void init();
     void start();
+
+    void getWxList();
+    void getWxInfo(QString wxid);
+    void sendUserMessage(QString wxid, QString msg);
+
+private:
+    void sendApiMessage(QString wxid, QString type, MyJson data);
+    void sendApiMessage(QString type, MyJson data);
+    void parseReceiveMessage(MyJson json);
 
 signals:
 
@@ -25,6 +35,9 @@ public slots:
 
 private:
     QWebSocket *deanWs = nullptr;
+    QStringList requiredTypes;
+
+    QString nick;
 };
 
 #endif // DEANSERVICE_H

@@ -3,10 +3,17 @@
 
 #include <QObject>
 
-class AppRuntime
+class AppRuntime : public QObject
 {
+    Q_OBJECT
 public:
-    AppRuntime();
+    AppRuntime(QObject *parent = nullptr);
+
+    void setDeanService(qint64 deanService);
+    qint64 deanService();
+
+private:
+    qint64 _deanService = 0;
 };
 
 extern AppRuntime *ar;
