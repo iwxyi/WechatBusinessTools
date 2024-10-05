@@ -1,4 +1,5 @@
 #include "mainwindow.h"
+#include "usettings.h"
 
 #include <QApplication>
 
@@ -20,6 +21,7 @@ int main(int argc, char *argv[])
     // Mac窗口
     qputenv("QT_MAC_WANTS_LAYER", "1");
 
+    // 主窗口
     MainWindow w;
     w.show();
     return a.exec();

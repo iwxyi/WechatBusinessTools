@@ -19,6 +19,9 @@ public slots:
     void onConnected();
     void onDisconnected();
     void onTextMessageReceived(const QString &message);
+    void onBinaryMessageReceived(const QByteArray &message);
+    void onError(QAbstractSocket::SocketError error);
+    void onSslErrors(const QList<QSslError> &errors);
 
 private:
     QWebSocket *deanWs = nullptr;
