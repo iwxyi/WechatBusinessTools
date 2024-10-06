@@ -40,6 +40,7 @@ void ChatWidget::onNewMessage(const ChatBean &chatBean)
     QString wxid = chatBean.getObjectId();
     if (!messageIdList.contains(wxid)) // 如果不在列表中，则插入到最前面
     {
+        // qInfo() << "插入最新消息列表，wxid:" << wxid << ", 消息:" << chatBean.msg.left(100);
         insertLatestMessageItem(chatBean);
         return;
     }
@@ -49,10 +50,12 @@ void ChatWidget::onNewMessage(const ChatBean &chatBean)
     Q_ASSERT(index != -1);
     if (index == 0) // 已经是最新的了，那就不更换顺序，直接更新
     {
-        updateLatestMessageItem(0, chatBean);
+        // qInfo() << "更新最新消息列表 索引:" + QString::number(index) + "，wxid:" << wxid << ", 消息:" << chatBean.msg.left(100);
+        updateLatestMessageItem(index, chatBean);
     }
     else // 不是最新的，切换到最顶上
     {
+        // qInfo() << "移动索引" << index << "至最顶上，wxid:" << wxid << ", 消息:" << chatBean.msg.left(100);
         removeLatestMessageItem(index);
         insertLatestMessageItem(chatBean);
     }
@@ -70,15 +73,15 @@ void ChatWidget::insertLatestMessageItem(const ChatBean &chatBean)
     QWidget *widget = new QWidget(this);
     QHBoxLayout *layout = new QHBoxLayout(widget);
     QLabel *nicknameLabel = new QLabel(chatBean.objectName, widget);
-    QLabel *messageLabel = new QLabel(firstMsgLine, widget);
+    QLabel *messageLabel = new QLabel(chatBean.senderName + "：" + firstMsgLine, widget);
     nicknameLabel->setObjectName("nicknameLabel");
     messageLabel->setObjectName("messageLabel");
     layout->addWidget(nicknameLabel);
     layout->addWidget(messageLabel);
     widget->setLayout(layout);
 
-    QListWidgetItem *item = new QListWidgetItem(ui->latestListWidget);
-    ui->latestListWidget->addItem(item);
+    QListWidgetItem *item = new QListWidgetItem();
+    ui->latestListWidget->insertItem(0, item);
     ui->latestListWidget->setItemWidget(item, widget);
     widget->adjustSize();
     item->setSizeHint(QSize(0, widget->height()));
@@ -104,7 +107,7 @@ void ChatWidget::updateLatestMessageItem(int index, const ChatBean &chatBean)
 
     QLabel *messageLabel = widget->findChild<QLabel*>("messageLabel");
     Q_ASSERT(messageLabel != nullptr);
-    messageLabel->setText(firstMsgLine);
+    messageLabel->setText(chatBean.senderName + "：" + firstMsgLine);
 }
 
 /**

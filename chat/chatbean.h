@@ -110,6 +110,10 @@ struct ChatBean
         {
             return "[系统消息]";
         }
+        if (msg.startsWith("<msg>") && msg.endsWith("</msg>"))
+        {
+            return "[xml]";
+        }
         return msg;
     }
 

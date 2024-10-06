@@ -127,13 +127,17 @@ void AccountInfo::updateGroupChatsMemberNicks(QString groupId)
         qWarning() << "更新群成员昵称失败，wxid:" << groupId;
         return;
     }
+
     QMap<QString, QString> groupMemberNickMap = groupMap[groupId].groupMemberNickMap;
     QList<ChatBean>& chatList = chatMap[groupId];
+    qInfo() << "更新群" << groupId << "中" << chatList.size() << "条消息的群成员昵称";
     for (ChatBean& chat : chatList)
     {
-        if (groupMemberNickMap.contains(chat.finalFromWxid))
+        if (!groupMemberNickMap.contains(chat.finalFromWxid))
         {
-            chat.senderName = groupMemberNickMap[chat.finalFromWxid];
+            qWarning() << "更新消息中的群成员昵称失败，wxid:" << chat.finalFromWxid;
+            continue;
         }
+        chat.senderName = groupMemberNickMap[chat.finalFromWxid];
     }
 }

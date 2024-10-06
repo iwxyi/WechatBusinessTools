@@ -328,7 +328,7 @@ void DeanService::parseRequiredMessage(MyJson json)
         ac->setGroupMembers(groupId, groupMemberNickMap);
 
         // 更新群聊记录中的昵称
-        
+        ac->updateGroupChatsMemberNicks(groupId);
         
         // 更新View中显示的昵称
         emit st->signalGroupMemberListChanged(groupId);
@@ -404,7 +404,7 @@ void DeanService::parseReceivedMessage(MyJson json)
         {
             chatBean.senderName = ac->getFriend(chatBean.fromWxid).nick;
             chatBean.objectName = ac->getFriend(chatBean.fromWxid).nick;
-            qInfo() << "收到私聊" << chatBean.objectName << chatBean.fromWxid << chatBean.msg;
+            qInfo() << "收到私聊" << chatBean.objectName << chatBean.fromWxid << chatBean.msg.left(100);
         }
         else if (chatBean.isGroup())
         {
@@ -415,11 +415,12 @@ void DeanService::parseReceivedMessage(MyJson json)
             }
             else
             {
+                qWarning() << "获取群成员昵称失败，wxid:" << chatBean.finalFromWxid;
                 QTimer::singleShot(100, this, [this, chatBean]() {
                     getGroupMemberList(chatBean.fromWxid);
                 });
             }
-            qInfo() << "收到群聊" << chatBean.objectName << chatBean.fromWxid << chatBean.senderName << chatBean.finalFromWxid << chatBean.msgType << chatBean.msg;
+            qInfo() << "收到群聊" << chatBean.objectName << chatBean.fromWxid << chatBean.senderName << chatBean.finalFromWxid << chatBean.msgType << chatBean.msg.left(100);
         }
 
         ac->addChat(chatBean);
@@ -483,7 +484,7 @@ void DeanService::getGroupMemberList(QString groupId)
     MyJson json;
     json.insert("wxid", groupId);
     json.insert("type", "1");
-    json.insert("getNick", "1");
+    json.insert("getNick", "2");
     sendApiMessage("Q0008", json.toBa());
 }
 
