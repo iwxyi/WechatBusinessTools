@@ -21,7 +21,8 @@ public:
 private:
     void sendApiMessage(QString wxid, QString type, MyJson data);
     void sendApiMessage(QString type, MyJson data);
-    void parseReceiveMessage(MyJson json);
+    void parseRequiredMessage(MyJson json);
+    void parseReceivedMessage(MyJson json);
 
 signals:
 

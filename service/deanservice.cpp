@@ -2,6 +2,7 @@
 #include "myjson.h"
 #include "usettings.h"
 #include "signaltransfer.h"
+#include "accountinfo.h"
 #include <QDebug>
 
 DeanService::DeanService(QObject *parent) : QObject(parent)
@@ -32,17 +33,17 @@ void DeanService::onDisconnected()
 
 void DeanService::onTextMessageReceived(const QString &message)
 {
-    qDebug() << "收到消息:" << message;
+    // qDebug() << "收到消息:" << message;
     // 在这里处理接收到的消息
-    parseReceiveMessage(MyJson(message.toUtf8()));
+    parseRequiredMessage(MyJson(message.toUtf8()));
 }
 
 void DeanService::onBinaryMessageReceived(const QByteArray &message)
 {
-    qDebug() << "收到二进制消息:" << message;
+    // qDebug() << "收到二进制消息:" << message;
     // 在这里处理接收到的二进制消息
     MyJson json(message);
-    qDebug() << "事件：" << json;
+    parseReceivedMessage(json);
 }
 
 void DeanService::onError(QAbstractSocket::SocketError error)
@@ -77,25 +78,28 @@ void DeanService::sendApiMessage(QString type, MyJson data)
     sendApiMessage(us->deanWxid(), type, data.toBa());
 }
 
-void DeanService::parseReceiveMessage(MyJson json)
+/**
+ * 接收自己发过去的请求信息，走Text通道
+ */
+void DeanService::parseRequiredMessage(MyJson json)
 {
     int code = json.i("code");
     QString msg = json.s("msg");
     
     if (code != 200)
     {
-        qCritical() << "DeanService::parseReceiveMessage 错误:" << code << msg;
+        qCritical() << "DeanService::parseRequiredMessage 错误:" << code << msg;
         return;
     }
 
     if (!requiredTypes.size())
     {
-        qCritical() << "DeanService::parseReceiveMessage 所有消息已接收";
+        qCritical() << "DeanService::parseRequiredMessage 所有消息已接收";
         return;
     }
 
     QString type = requiredTypes.takeFirst();
-    if (type == "X0000")
+    if (type == "X0000") // 信息列表
     {
         QJsonArray result = json.a("result");
         for (int i = 0; i < result.size(); i++)
@@ -120,8 +124,106 @@ void DeanService::parseReceiveMessage(MyJson json)
                 this->nick = nick;
                 qInfo() << "账号信息：ID:" << us->deanWxid() << ",昵称:" << nick << ",端口:" << port;
                 emit st->signalNickChanged(nick);
+
+                // 获取当前微信号的详细信息
+                // getWxInfo(wxid); // 没必要，因为信息是重复的
             }
         }
+    }
+    else if (type == "Q0003") // 获取Hook微信账号信息
+    {
+        
+    }
+    else
+    {
+        qWarning() << "DeanService::parseRequiredMessage 未知类型:" << type;
+    }
+}
+
+/**
+ * 接收Dean发过来的事件消息，走Binary通道
+ */
+void DeanService::parseReceivedMessage(MyJson json)
+{
+    int event = json.i("event");
+    QString wxid = json.s("wxid");
+    MyJson data = json.o("data");
+    if (event == 10014) // 账号变动事件
+    {
+        // 处理账号变动事件
+    }
+    else if (event == 10008 || event == 10009 || event == 10010) // 收到群聊/私聊/自己消息
+    {
+        // 处理收到的群聊消息
+        /*{
+            "event": 10008,
+            "wxid": "wxid_nq6r0w9v12612",
+            "data": {
+                "type": "recvMsg",
+                "des": "收到消息",
+                "data": {
+                    "timeStamp": "1716619844146",
+                    "fromType": 2,
+                    "msgType": 1,
+                    "msgSource": 0,
+                    "fromWxid": "34457730396@chatroom",
+                    "finalFromWxid": "wxid_3sq4tklb6c3121",
+                    "atWxidList": ["wxid_nq6r0w9v12612", "wxid_s4icha2bm2zg12"],
+                    "silence": 0,
+                    "membercount": 3,
+                    "signature": "V1_1YiTEwOY|v1_1YiTEwOY",
+                    "msg": "@忆白\\u2005@小鹿\\uD83D\\uDE00\\uD83D\\uDE00摸\\u2005你好\\uD83E\\uDD23世界",
+                    "msgId": "7053704521966022857",
+                    "msgBase64": "QOW\/hueZvVx1MjAwNUDlsI\/pub9cdUQ4M0RcdURFMDBcdUQ4M0RcdURFMDDmkbhcdTIwMDXkvaDlpb1cdUQ4M0VcdUREMjPkuJbnlYw="
+                },
+                "timestamp": "1716619844147",
+                "wxid": "wxid_nq6r0w9v12612",
+                "port": 8888,
+                "pid": 3944,
+                "flag": "7888"
+            }
+        }*/
+        QString des = data.s("des");
+        data = data.o("data");
+        ChatBean chatBean;
+        chatBean.des = des;
+        chatBean.timeStamp = data.s("timeStamp").toLongLong();
+        chatBean.fromType = data.i("fromType");
+        chatBean.msgType = data.i("msgType");
+        chatBean.msgSource = data.i("msgSource");
+        chatBean.fromWxid = data.s("fromWxid");
+        chatBean.finalFromWxid = data.s("finalFromWxid");
+        chatBean.atWxidList = data.sl("atWxidList");
+        chatBean.silence = data.i("silence");
+        chatBean.membercount = data.i("membercount");
+        chatBean.signature = data.s("signature");
+        chatBean.msg = data.s("msg");
+        chatBean.msgId = data.s("msgId");
+        chatBean.msgBase64 = data.s("msgBase64");
+        qInfo() << des << chatBean.getObjectId() << chatBean.getSenderId() << chatBean.getMsg();
+
+        ac->addChat(chatBean);
+        emit st->signalNewMessage(chatBean);
+    }
+    else if (event == 10006) // 转账事件
+    {
+        // 处理转账事件
+    }
+    else if (event == 10011) // 好友请求
+    {
+        // 处理好友请求
+    }
+    else if (event == 10007) // 支付事件
+    {
+        // 处理支付事件
+    }
+    else if (event == 10000) // 注入成功
+    {
+        // 处理注入成功事件
+    }
+    else
+    {
+        qWarning() << "DeanService::parseReceivedMessage 未知事件类型:" << event;
     }
 }
 
@@ -133,10 +235,10 @@ void DeanService::getWxList()
 
 void DeanService::getWxInfo(QString wxid)
 {
+    qInfo() << "获取Hook微信账号信息";
     MyJson json;
-    json.insert("event", "getWxInfo");
-    json.insert("wxid", wxid);
-    deanWs->sendTextMessage(json.toBa());
+    json.insert("type", "1");
+    sendApiMessage("Q0003", json.toBa());
 }
 
 void DeanService::sendUserMessage(QString wxid, QString msg)

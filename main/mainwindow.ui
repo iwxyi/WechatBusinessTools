@@ -33,36 +33,53 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
-      <widget class="QWidget" name="tab">
+      <widget class="QWidget" name="linkTab">
        <attribute name="title">
         <string>连接</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_2">
         <property name="leftMargin">
-         <number>20</number>
+         <number>0</number>
         </property>
         <property name="topMargin">
-         <number>20</number>
+         <number>0</number>
         </property>
         <property name="rightMargin">
-         <number>20</number>
+         <number>0</number>
         </property>
         <property name="bottomMargin">
-         <number>20</number>
+         <number>0</number>
         </property>
         <item>
          <widget class="LinkWidget" name="widget" native="true"/>
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="tab_2">
+      <widget class="QWidget" name="chatTab">
        <attribute name="title">
         <string>消息</string>
        </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_3">
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
+         <number>0</number>
+        </property>
+        <item>
+         <widget class="ChatWidget" name="chatWidget" native="true"/>
+        </item>
+       </layout>
       </widget>
-      <widget class="QWidget" name="tab_3">
+      <widget class="QWidget" name="autoTab">
        <attribute name="title">
         <string>自动化</string>
        </attribute>
@@ -100,6 +117,12 @@
    <class>LinkWidget</class>
    <extends>QWidget</extends>
    <header location="global">linkwidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ChatWidget</class>
+   <extends>QWidget</extends>
+   <header>chatwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

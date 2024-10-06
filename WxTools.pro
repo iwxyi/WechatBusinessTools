@@ -20,9 +20,13 @@ INCLUDEPATH += \
     global\
     utils\
     service\
-    link
+    link\
+    chat
 
 SOURCES += \
+    chat/chatlistwidget.cpp \
+    chat/chatwidget.cpp \
+    chat/msglistwidget.cpp \
     global/appruntime.cpp \
     global/usettings.cpp \
     link/linkwidget.cpp \
@@ -30,9 +34,13 @@ SOURCES += \
     main/mainwindow.cpp \
     utils/fileutil.cpp \
     utils/stringutil.cpp \
-    service/deanservice.cpp
+    service/deanservice.cpp \
+    global/accountinfo.cpp
 
 HEADERS += \
+    chat/chatlistwidget.h \
+    chat/chatwidget.h \
+    chat/msglistwidget.h \
     global/appruntime.h \
     global/signaltransfer.h \
     global/usettings.h \
@@ -42,9 +50,11 @@ HEADERS += \
     utils/fileutil.h \
     utils/myjson.h \
     utils/stringutil.h \
-    service/deanservice.h
+    service/deanservice.h \
+    global/accountinfo.h
 
 FORMS += \
+    chat/chatwidget.ui \
     link/linkwidget.ui \
     main/mainwindow.ui
 

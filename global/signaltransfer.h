@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QString>
+#include "chatbean.h"
 
 class SignalTransfer : public QObject
 {
@@ -10,6 +11,7 @@ class SignalTransfer : public QObject
 signals:
     void signalWxidChanged(QString wxid);
     void signalNickChanged(QString nick);
+    void signalNewMessage(ChatBean msg);
 };
 
 extern SignalTransfer* st;

@@ -73,6 +73,17 @@ public:
         return QJsonObject::value(key).toArray();
     }
 
+    QStringList sl(QString key) const
+    {
+        QJsonArray array = a(key);
+        QStringList l;
+        foreach (QJsonValue value, array)
+        {
+            l.append(value.toString());
+        }
+        return l;
+    }
+
     bool b(QString key) const
     {
         return QJsonObject::value(key).toBool();
