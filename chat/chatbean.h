@@ -4,6 +4,7 @@
 #include <QString>
 #include <QStringList>
 #include <QList>
+#include <QMap>
 
 enum ChatType
 {
@@ -45,7 +46,9 @@ struct ChatBean
     QString msg; // 消息内容
     QString msgId; // 消息ID
     QString msgBase64; // 消息内容的Base64
-    QString nickname; // 消息发送者昵称
+
+    QString objectName; // 私聊发送者名称/群聊名称
+    QString senderName; // 消息发送者昵称
 
     QString getObjectId() const
     {
@@ -59,6 +62,54 @@ struct ChatBean
 
     QString getMsg() const
     {
+        if (msgType == 2)
+        {
+            return "[表情包]";
+        }
+        else if (msgType == 3)
+        {
+            return "[图片]";
+        }
+        else if (msgType == 34)
+        {
+            return "[语音]";
+        }
+        else if (msgType == 42)
+        {
+            return "[名片]";
+        }
+        else if (msgType == 43)
+        {
+            return "[视频]";
+        }
+        else if (msgType == 47)
+        {
+            return "[动态表情]";
+        }
+        else if (msgType == 48)
+        {
+            return "[地理位置]";
+        }
+        else if (msgType == 49)
+        {
+            return "[分享链接]";
+        }
+        else if (msgType == 2001)
+        {
+            return "[红包]";
+        }
+        else if (msgType == 2002)
+        {
+            return "[小程序]";
+        }
+        else if (msgType == 2003)
+        {
+            return "[群邀请]";
+        }
+        else if (msgType == 10000)
+        {
+            return "[系统消息]";
+        }
         return msg;
     }
 
@@ -114,31 +165,31 @@ struct FriendBean
     QString avatarMinUrl;
     QString avatarMaxUrl;
     QString sex;
+
+    QString getName() const
+    {
+        if (!remark.isEmpty())
+        {
+            return remark;
+        }
+        else if (!nick.isEmpty())
+        {
+            return nick;
+        }
+        else if (!wxNum.isEmpty())
+        {
+            return wxNum;
+        }
+        return wxid;
+    }
 };
 
-struct GroupBean
+struct GroupBean : public FriendBean
 {
-    QString wxid;
-    QString wxNum;
-    QString nick;
-    QString remark;
-    QString nickBrief;
-    QString nickWhole;
-    QString remarkBrief;
-    QString remarkWhole;
-    QString enBrief;
-    QString enWhole;
-    QString v3;
-    QString sign;
-    QString country;
-    QString province;
-    QString city;
-    QString momentsBackgroudImgUrl;
-    QString avatarMinUrl;
-    QString avatarMaxUrl;
-    QString sex;
     int groupMemberNum;
     QString groupManger;
+
+    QMap<QString, QString> groupMemberNickMap;
 };
 
 #endif // CHATBEAN_H

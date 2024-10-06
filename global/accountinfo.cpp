@@ -1,4 +1,5 @@
 #include "accountinfo.h"
+#include <QDebug>
 
 AccountInfo *ac = new AccountInfo();
 
@@ -33,25 +34,106 @@ void AccountInfo::setNick(QString nick)
 
 void AccountInfo::addChat(ChatBean chatBean)
 {
-    chatMap.insert(chatBean.getObjectId(), chatBean);
+    if (!chatMap.contains(chatBean.getObjectId()))
+    {
+        chatMap.insert(chatBean.getObjectId(), QList<ChatBean>());
+    }
+    chatMap[chatBean.getObjectId()].append(chatBean);
 }
 
-void AccountInfo::setFriendList(QMap<QString, FriendBean> friendMap)
+ChatBean AccountInfo::getLatestChat(QString wxid) const
+{
+    if (!chatMap.contains(wxid))
+    {
+        qWarning() << "获取最新消息失败，wxid:" << wxid;
+        return ChatBean();
+    }
+    if (chatMap[wxid].isEmpty())
+    {
+        return ChatBean();
+    }
+    return chatMap[wxid].first();
+}
+
+void AccountInfo::setFriendList(const QMap<QString, FriendBean> &friendMap)
 {
     this->friendMap = friendMap;
 }
 
-void AccountInfo::setGroupList(QMap<QString, GroupBean> groupMap)
+void AccountInfo::setGroupList(const QMap<QString, GroupBean> &groupMap)
 {
     this->groupMap = groupMap;
 }
 
-void AccountInfo::addFriend(FriendBean friendBean)
+void AccountInfo::addFriend(const FriendBean &friendBean)
 {
     friendMap.insert(friendBean.wxid, friendBean);
 }
 
-void AccountInfo::addGroup(GroupBean groupBean)
+void AccountInfo::addGroup(const GroupBean &groupBean)
 {
     groupMap.insert(groupBean.wxid, groupBean);
+}
+
+FriendBean AccountInfo::getFriend(QString wxid) const
+{
+    if (!friendMap.contains(wxid))
+    {
+        qWarning() << "获取好友信息失败，wxid:" << wxid;
+        return FriendBean();
+    }
+    return friendMap.value(wxid);
+}
+
+GroupBean AccountInfo::getGroup(QString wxid) const
+{
+    if (!groupMap.contains(wxid))
+    {
+        qWarning() << "获取群信息失败，wxid:" << wxid;
+        return GroupBean();
+    }
+    return groupMap.value(wxid);
+}
+
+void AccountInfo::setGroupMembers(QString groupId, QMap<QString, QString> groupMemberNickMap)
+{
+    if (!groupMap.contains(groupId))
+    {
+        qWarning() << "设置群成员信息失败，wxid:" << groupId;
+        return;
+    }
+    groupMap[groupId].groupMemberNickMap = groupMemberNickMap;
+}
+
+QString AccountInfo::getGroupMemberNick(QString groupId, QString wxid)
+{
+    if (!groupMap.contains(groupId))
+    {
+        qWarning() << "获取群成员昵称所在群失败，wxid:" << groupId;
+        return "";
+    }
+    if (!groupMap[groupId].groupMemberNickMap.contains(wxid))
+    {
+        qWarning() << "获取群成员昵称失败，wxid:" << wxid;
+        return "";
+    }
+    return groupMap[groupId].groupMemberNickMap[wxid];
+}
+
+void AccountInfo::updateGroupChatsMemberNicks(QString groupId)
+{
+    if (!groupMap.contains(groupId))
+    {
+        qWarning() << "更新群成员昵称失败，wxid:" << groupId;
+        return;
+    }
+    QMap<QString, QString> groupMemberNickMap = groupMap[groupId].groupMemberNickMap;
+    QList<ChatBean>& chatList = chatMap[groupId];
+    for (ChatBean& chat : chatList)
+    {
+        if (groupMemberNickMap.contains(chat.finalFromWxid))
+        {
+            chat.senderName = groupMemberNickMap[chat.finalFromWxid];
+        }
+    }
 }

@@ -12,6 +12,8 @@ signals:
     void signalWxidChanged(QString wxid);
     void signalNickChanged(QString nick);
     void signalNewMessage(ChatBean msg);
+    void signalGroupMemberListChanged(QString groupId);
+    void signalGroupMemberNickChanged(QString groupId, QString userId, QString nick);
 };
 
 extern SignalTransfer* st;

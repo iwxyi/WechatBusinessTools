@@ -1,8 +1,10 @@
 #include "chatwidget.h"
 #include "ui_chatwidget.h"
 #include "signaltransfer.h"
+#include "accountinfo.h"
 #include <QLabel>
 #include <QHBoxLayout>
+#include <QDebug>
 
 ChatWidget::ChatWidget(QWidget *parent)
     : QWidget(parent)
@@ -14,6 +16,18 @@ ChatWidget::ChatWidget(QWidget *parent)
     ui->msgListWidget->setLayout(chatLayout);
 
     connect(st, &SignalTransfer::signalNewMessage, this, &ChatWidget::onNewMessage);
+    connect(st, &SignalTransfer::signalGroupMemberListChanged, this, [=](QString groupId) {
+        qInfo() << "更新View群成员信息" << groupId;
+        for (int i = 0; i < messageIdList.size(); i++)
+        {
+            if (messageIdList[i] == groupId)
+            {
+                updateLatestMessageItem(i, ac->getLatestChat(groupId));
+                return;
+            }
+        }
+        qWarning() << "更新View群成员信息失败，未找到聊天记录中的群组，groupId:" << groupId;
+    });
 }
 
 ChatWidget::~ChatWidget()
@@ -51,11 +65,11 @@ void ChatWidget::insertLatestMessageItem(const ChatBean &chatBean)
 {
     messageIdList.insert(0, chatBean.getObjectId());
 
-    QString firstMsgLine = chatBean.msg.split("\n").first();
+    QString firstMsgLine = chatBean.getMsg().split("\n").first();
     
     QWidget *widget = new QWidget(this);
     QHBoxLayout *layout = new QHBoxLayout(widget);
-    QLabel *nicknameLabel = new QLabel(chatBean.nickname, widget);
+    QLabel *nicknameLabel = new QLabel(chatBean.objectName, widget);
     QLabel *messageLabel = new QLabel(firstMsgLine, widget);
     nicknameLabel->setObjectName("nicknameLabel");
     messageLabel->setObjectName("messageLabel");
@@ -86,7 +100,7 @@ void ChatWidget::updateLatestMessageItem(int index, const ChatBean &chatBean)
 
     QLabel *nicknameLabel = widget->findChild<QLabel*>("nicknameLabel");
     Q_ASSERT(nicknameLabel != nullptr);
-    nicknameLabel->setText(chatBean.nickname);
+    nicknameLabel->setText(chatBean.objectName);
 
     QLabel *messageLabel = widget->findChild<QLabel*>("messageLabel");
     Q_ASSERT(messageLabel != nullptr);

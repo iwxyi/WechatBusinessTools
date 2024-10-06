@@ -18,10 +18,16 @@ public:
     void setNick(QString nick);
 
     void addChat(ChatBean chatBean);
-    void setFriendList(QMap<QString, FriendBean> friendMap);
-    void setGroupList(QMap<QString, GroupBean> groupMap);
-    void addFriend(FriendBean friendBean);
-    void addGroup(GroupBean groupBean);
+    ChatBean getLatestChat(QString wxid) const;
+    void setFriendList(const QMap<QString, FriendBean> &friendMap);
+    void setGroupList(const QMap<QString, GroupBean> &groupMap);
+    void addFriend(const FriendBean &friendBean);
+    void addGroup(const GroupBean &groupBean);
+    FriendBean getFriend(QString wxid) const;
+    GroupBean getGroup(QString wxid) const;
+    void setGroupMembers(QString groupId, QMap<QString, QString> groupMemberNickMap);
+    QString getGroupMemberNick(QString groupId, QString wxid);
+    void updateGroupChatsMemberNicks(QString groupId);
 
 private:
     QString wxid;
@@ -29,7 +35,7 @@ private:
 
     QMap<QString, FriendBean> friendMap; // 好友列表
     QMap<QString, GroupBean> groupMap; // 群列表
-    QMap<QString, ChatBean> chatMap; // 所有消息列表
+    QMap<QString, QList<ChatBean>> chatMap; // 所有消息列表
 };
 
 extern AccountInfo *ac;
