@@ -5,6 +5,20 @@
 #include <QWebSocket>
 #include "utils/myjson.h"
 
+struct RequiredData
+{
+    QString wxid;
+    QString type;
+    MyJson data;
+
+    RequiredData(QString wxid, QString type, MyJson data)
+    {
+        this->wxid = wxid;
+        this->type = type;
+        this->data = data;
+    }
+};
+
 class DeanService : public QObject
 {
     Q_OBJECT
@@ -16,6 +30,8 @@ public:
 
     void getWxList();
     void getWxInfo(QString wxid);
+    void getFriendList();
+    void getGroupList();
     void sendUserMessage(QString wxid, QString msg);
 
 private:
@@ -25,6 +41,7 @@ private:
     void parseReceivedMessage(MyJson json);
 
 signals:
+    void signalRequiredMessage();
 
 public slots:
     void onConnected();
@@ -33,12 +50,13 @@ public slots:
     void onBinaryMessageReceived(const QByteArray &message);
     void onError(QAbstractSocket::SocketError error);
     void onSslErrors(const QList<QSslError> &errors);
+    void wsSendTextMessageByQueue();
 
 private:
     QWebSocket *deanWs = nullptr;
-    QStringList requiredTypes;
 
     QString nick;
+    QList<RequiredData> requiredQueue;
 };
 
 #endif // DEANSERVICE_H

@@ -93,4 +93,52 @@ struct ChatBean
     }
 };
 
+struct FriendBean
+{
+    QString wxid;
+    QString wxNum;
+    QString nick;
+    QString remark;
+    QString nickBrief;
+    QString nickWhole;
+    QString remarkBrief;
+    QString remarkWhole;
+    QString enBrief;
+    QString enWhole;
+    QString v3;
+    QString sign;
+    QString country;
+    QString province;
+    QString city;
+    QString momentsBackgroudImgUrl;
+    QString avatarMinUrl;
+    QString avatarMaxUrl;
+    QString sex;
+};
+
+struct GroupBean
+{
+    QString wxid;
+    QString wxNum;
+    QString nick;
+    QString remark;
+    QString nickBrief;
+    QString nickWhole;
+    QString remarkBrief;
+    QString remarkWhole;
+    QString enBrief;
+    QString enWhole;
+    QString v3;
+    QString sign;
+    QString country;
+    QString province;
+    QString city;
+    QString momentsBackgroudImgUrl;
+    QString avatarMinUrl;
+    QString avatarMaxUrl;
+    QString sex;
+    int groupMemberNum;
+    QString groupManger;
+};
+
 #endif // CHATBEAN_H

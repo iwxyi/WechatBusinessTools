@@ -4,6 +4,7 @@
 #include "signaltransfer.h"
 #include "accountinfo.h"
 #include <QDebug>
+#include <QEventLoop>
 
 DeanService::DeanService(QObject *parent) : QObject(parent)
 {
@@ -18,6 +19,8 @@ void DeanService::init()
     connect(deanWs, &QWebSocket::binaryMessageReceived, this, &DeanService::onBinaryMessageReceived);
     connect(deanWs, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(onError(QAbstractSocket::SocketError)));
     connect(deanWs, &QWebSocket::sslErrors, this, &DeanService::onSslErrors);
+
+    connect(this, &DeanService::signalRequiredMessage, this, &DeanService::wsSendTextMessageByQueue);
 }
 
 void DeanService::onConnected()
@@ -65,17 +68,37 @@ void DeanService::start()
 
 void DeanService::sendApiMessage(QString wxid, QString type, MyJson data)
 {
-    MyJson json;
-    json.insert("type", type);
-    json.insert("wxid", wxid);
-    json.insert("data", data);
-    requiredTypes.append(type);
-    deanWs->sendTextMessage(json.toBa());
+    requiredQueue.append(RequiredData(wxid, type, data));
+    
+    // 如果只有一个请求，则直接发送
+    // 否则等待接收的信号
+    if (requiredQueue.size() == 1)
+    {
+        wsSendTextMessageByQueue();
+    }
+    else
+    {
+        qDebug() << "DeanService::sendApiMessage 等待上一个请求结束";
+    }
 }
 
 void DeanService::sendApiMessage(QString type, MyJson data)
 {
     sendApiMessage(us->deanWxid(), type, data.toBa());
+}
+
+void DeanService::wsSendTextMessageByQueue()
+{
+    if (requiredQueue.size() == 0)
+    {
+        return;
+    }
+    
+    MyJson json;
+    json.insert("type", requiredQueue.first().type);
+    json.insert("wxid", requiredQueue.first().wxid);
+    json.insert("data", requiredQueue.first().data);
+    deanWs->sendTextMessage(json.toBa());
 }
 
 /**
@@ -92,13 +115,10 @@ void DeanService::parseRequiredMessage(MyJson json)
         return;
     }
 
-    if (!requiredTypes.size())
-    {
-        qCritical() << "DeanService::parseRequiredMessage 所有消息已接收";
-        return;
-    }
+    Q_ASSERT(requiredQueue.size());
 
-    QString type = requiredTypes.takeFirst();
+    RequiredData requiredData = requiredQueue.takeFirst();
+    QString type = requiredData.type;
     if (type == "X0000") // 信息列表
     {
         QJsonArray result = json.a("result");
@@ -127,6 +147,8 @@ void DeanService::parseRequiredMessage(MyJson json)
 
                 // 获取当前微信号的详细信息
                 // getWxInfo(wxid); // 没必要，因为信息是重复的
+                getFriendList();
+                getGroupList();
             }
         }
     }
@@ -134,9 +156,149 @@ void DeanService::parseRequiredMessage(MyJson json)
     {
         
     }
+    else if (type == "Q0005") // 获取Hook好友列表
+    {
+        /*{
+            "code": 200,
+            "msg": "操作成功",
+            "result": [
+                {
+                    "wxid": "wxid_s4icha2bm2zg12",
+                    "wxNum": "ebaiwl",
+                    "nick": "忆白",
+                    "remark": "",
+                    "nickBrief": "",
+                    "nickWhole": "",
+                    "remarkBrief": "",
+                    "remarkWhole": "",
+                    "enBrief": "",
+                    "enWhole": "",
+                    "v3": "v3_020b3826fd03010000000000d62217f63836d8000000501",
+                    "sign": "",
+                    "country": "",
+                    "province": "",
+                    "city": "",
+                    "momentsBackgroudImgUrl": "",
+                    "avatarMinUrl": "",
+                    "avatarMaxUrl": "",
+                    "sex": "0"
+                },
+                .........
+            ],
+            "wxid": "wxid_nq6r0w9v12612",
+            "port": 8888,
+            "pid": 30788,
+            "flag": "7888",
+            "timestamp": "1716629212103"
+        }*/
+
+       ac->setFriendList(QMap<QString, FriendBean>());
+       QJsonArray result = json.a("result");
+       qInfo() << "获取好友列表" << result.size() << "个";
+       
+       for (int i = 0; i < result.size(); i++)
+       {
+           MyJson item = result.at(i).toObject();
+           FriendBean friendBean;
+           friendBean.wxid = item.s("wxid");
+           friendBean.wxNum = item.s("wxNum");
+           friendBean.nick = item.s("nick");
+           friendBean.remark = item.s("remark");
+           friendBean.nickBrief = item.s("nickBrief");
+           friendBean.nickWhole = item.s("nickWhole");
+           friendBean.remarkBrief = item.s("remarkBrief");
+           friendBean.remarkWhole = item.s("remarkWhole");
+           friendBean.enBrief = item.s("enBrief");
+           friendBean.enWhole = item.s("enWhole");
+           friendBean.v3 = item.s("v3");
+           friendBean.sign = item.s("sign");
+           friendBean.country = item.s("country");
+           friendBean.province = item.s("province");
+           friendBean.city = item.s("city");
+           friendBean.momentsBackgroudImgUrl = item.s("momentsBackgroudImgUrl");
+           friendBean.avatarMinUrl = item.s("avatarMinUrl");
+           friendBean.avatarMaxUrl = item.s("avatarMaxUrl");
+           friendBean.sex = item.s("sex");
+           ac->addFriend(friendBean);
+       }
+    }
+    else if (type == "Q0006") // 获取Hook群聊列表
+    {
+        /*{
+            "code": 200,
+            "msg": "操作成功",
+            "result": [
+                {
+                    "wxid": "34457730396@chatroom",
+                    "wxNum": "",
+                    "nick": "千寻Pro测试群",
+                    "remark": "",
+                    "nickBrief": "",
+                    "nickWhole": "",
+                    "remarkBrief": "",
+                    "remarkWhole": "",
+                    "enBrief": "",
+                    "enWhole": "",
+                    "v3": "",
+                    "sign": "",
+                    "country": "",
+                    "province": "",
+                    "city": "",
+                    "momentsBackgroudImgUrl": "",
+                    "avatarMinUrl": "",
+                    "avatarMaxUrl": "",
+                    "sex": "0",
+                    "groupMemberNum": 3,
+                    "groupManger": "wxid_3sq4tklb6c3121"
+                }
+            ],
+            "wxid": "wxid_nq6r0w9v12612",
+            "port": 7955,
+            "pid": 7816,
+            "flag": "7888",
+            "timestamp": "1716555864760"
+        }*/
+        ac->setGroupList(QMap<QString, GroupBean>());
+        QJsonArray result = json.a("result");
+        qInfo() << "获取群聊列表" << result.size() << "个";
+
+        for (int i = 0; i < result.size(); i++)
+        {
+            MyJson item = result.at(i).toObject();
+            GroupBean groupBean;
+            groupBean.wxid = item.s("wxid");
+            groupBean.wxNum = item.s("wxNum");
+            groupBean.nick = item.s("nick");
+            groupBean.remark = item.s("remark");
+            groupBean.nickBrief = item.s("nickBrief");
+            groupBean.nickWhole = item.value("nickWhole").toString();
+            groupBean.remarkBrief = item.s("remarkBrief");
+            groupBean.remarkWhole = item.s("remarkWhole");
+            groupBean.enBrief = item.s("enBrief");
+            groupBean.enWhole = item.s("enWhole");
+            groupBean.v3 = item.s("v3");
+            groupBean.sign = item.s("sign");
+            groupBean.country = item.s("country");
+            groupBean.province = item.s("province");
+            groupBean.city = item.value("city").toString();
+            groupBean.momentsBackgroudImgUrl = item.s("momentsBackgroudImgUrl");
+            groupBean.avatarMinUrl = item.s("avatarMinUrl");
+            groupBean.avatarMaxUrl = item.s("avatarMaxUrl");
+            groupBean.sex = item.s("sex");
+            groupBean.groupMemberNum = item.i("groupMemberNum");
+            groupBean.groupManger = item.s("groupManger");
+            ac->addGroup(groupBean);
+        }
+    }
     else
     {
         qWarning() << "DeanService::parseRequiredMessage 未知类型:" << type;
+    }
+
+    // 如果还有请求，则继续发送
+    if (requiredQueue.size() > 0)
+    {
+        emit signalRequiredMessage();
     }
 }
 
@@ -239,6 +401,22 @@ void DeanService::getWxInfo(QString wxid)
     MyJson json;
     json.insert("type", "1");
     sendApiMessage("Q0003", json.toBa());
+}
+
+void DeanService::getFriendList()
+{
+    qInfo() << "获取Hook微信好友列表";
+    MyJson json;
+    json.insert("type", "1");
+    sendApiMessage("Q0005", json.toBa());
+}
+
+void DeanService::getGroupList()
+{
+    qInfo() << "获取Hook微信群列表";
+    MyJson json;
+    json.insert("type", "1");
+    sendApiMessage("Q0006", json.toBa());
 }
 
 void DeanService::sendUserMessage(QString wxid, QString msg)

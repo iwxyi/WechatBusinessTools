@@ -18,11 +18,17 @@ public:
     void setNick(QString nick);
 
     void addChat(ChatBean chatBean);
+    void setFriendList(QMap<QString, FriendBean> friendMap);
+    void setGroupList(QMap<QString, GroupBean> groupMap);
+    void addFriend(FriendBean friendBean);
+    void addGroup(GroupBean groupBean);
 
 private:
     QString wxid;
     QString nick;
 
+    QMap<QString, FriendBean> friendMap; // 好友列表
+    QMap<QString, GroupBean> groupMap; // 群列表
     QMap<QString, ChatBean> chatMap; // 所有消息列表
 };
 

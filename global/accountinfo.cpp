@@ -35,3 +35,23 @@ void AccountInfo::addChat(ChatBean chatBean)
 {
     chatMap.insert(chatBean.getObjectId(), chatBean);
 }
+
+void AccountInfo::setFriendList(QMap<QString, FriendBean> friendMap)
+{
+    this->friendMap = friendMap;
+}
+
+void AccountInfo::setGroupList(QMap<QString, GroupBean> groupMap)
+{
+    this->groupMap = groupMap;
+}
+
+void AccountInfo::addFriend(FriendBean friendBean)
+{
+    friendMap.insert(friendBean.wxid, friendBean);
+}
+
+void AccountInfo::addGroup(GroupBean groupBean)
+{
+    groupMap.insert(groupBean.wxid, groupBean);
+}
