@@ -58,4 +58,6 @@ QString markText(QString text, int left, int right);
 QString uniformNewlineCharacter(QString text);
 int getRegMatchCount(const QString& text, const QString& pat);
 
+QString strLeft(QString s, int len);
+
 #endif // STRINGUTIL_H

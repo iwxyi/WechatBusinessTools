@@ -20,8 +20,13 @@ public:
     void addChat(ChatBean chatBean);
     ChatBean getLatestChat(QString wxid) const;
     const QList<ChatBean> &getChatList(QString wxid) const;
-    void setFriendList(const QMap<QString, FriendBean> &friendMap);
-    void setGroupList(const QMap<QString, GroupBean> &groupMap);
+
+    void setFriendMap(const QMap<QString, FriendBean> &friendMap);
+    void setGroupMap(const QMap<QString, GroupBean> &groupMap);
+    QMap<QString, FriendBean> getFriendMap() const;
+    QMap<QString, GroupBean> getGroupMap() const;
+    QList<FriendBean> getFriendList() const;
+    QList<GroupBean> getGroupList() const;
     void addFriend(const FriendBean &friendBean);
     void addGroup(const GroupBean &groupBean);
     FriendBean getFriend(QString wxid) const;

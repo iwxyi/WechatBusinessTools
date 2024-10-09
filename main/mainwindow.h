@@ -16,6 +16,11 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+private slots:
+    void on_actionFriends_triggered();
+
+    void on_actionGroups_triggered();
+
 private:
     Ui::MainWindow *ui;
 

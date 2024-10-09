@@ -17,11 +17,23 @@ public:
     void setMaxMessageCount(int count);
     int maxMessageCount();
 
+    void setWhiteList_friendWxid(QStringList wxidList);
+    void setWhiteList_friendEnabled(QString wxid, bool enable);
+    bool isWhiteList_friendEnabled(QString wxid);
+    QStringList whiteList_friendWxid();
+
+    void setWhiteList_groupWxid(QStringList wxidList);
+    void setWhiteList_groupEnabled(QString wxid, bool enable);
+    bool isWhiteList_groupEnabled(QString wxid);
+    QStringList whiteList_groupWxid();
+
 private:
     QString _deanServerUrl;
     QString _deanWxid;
 
     int _maxMessageCount;
+    QStringList _whiteList_friendWxid;
+    QStringList _whiteList_groupWxid;
 };
 
 extern USettings *us;

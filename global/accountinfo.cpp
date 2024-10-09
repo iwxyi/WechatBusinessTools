@@ -65,14 +65,34 @@ const QList<ChatBean>& AccountInfo::getChatList(QString wxid) const
     return chatMap.value(wxid);
 }
 
-void AccountInfo::setFriendList(const QMap<QString, FriendBean> &friendMap)
+void AccountInfo::setFriendMap(const QMap<QString, FriendBean> &friendMap)
 {
     this->friendMap = friendMap;
 }
 
-void AccountInfo::setGroupList(const QMap<QString, GroupBean> &groupMap)
+void AccountInfo::setGroupMap(const QMap<QString, GroupBean> &groupMap)
 {
     this->groupMap = groupMap;
+}
+
+QMap<QString, FriendBean> AccountInfo::getFriendMap() const
+{
+    return friendMap;
+}
+
+QMap<QString, GroupBean> AccountInfo::getGroupMap() const
+{
+    return groupMap;
+}
+
+QList<FriendBean> AccountInfo::getFriendList() const
+{
+    return friendMap.values();
+}
+
+QList<GroupBean> AccountInfo::getGroupList() const
+{
+    return groupMap.values();
 }
 
 void AccountInfo::addFriend(const FriendBean &friendBean)

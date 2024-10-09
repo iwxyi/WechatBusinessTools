@@ -170,7 +170,7 @@ void DeanService::parseRequiredMessage(MyJson json)
 
                 // 获取当前微信号的详细信息
                 // getWxInfo(wxid); // 没必要，因为信息是重复的
-                getFriendList();
+                getFriendMap();
                 getGroupList();
             }
         }
@@ -215,7 +215,7 @@ void DeanService::parseRequiredMessage(MyJson json)
             "timestamp": "1716629212103"
         }*/
 
-       ac->setFriendList(QMap<QString, FriendBean>());
+       ac->setFriendMap(QMap<QString, FriendBean>());
        QJsonArray result = json.a("result");
        qInfo() << "获取好友列表" << result.size() << "个";
        
@@ -282,7 +282,7 @@ void DeanService::parseRequiredMessage(MyJson json)
             "flag": "7888",
             "timestamp": "1716555864760"
         }*/
-        ac->setGroupList(QMap<QString, GroupBean>());
+        ac->setGroupMap(QMap<QString, GroupBean>());
         QJsonArray result = json.a("result");
         qInfo() << "获取群聊列表" << result.size() << "个";
 
@@ -470,7 +470,7 @@ void DeanService::getWxInfo(QString wxid)
     sendApiMessage("Q0003", json.toBa());
 }
 
-void DeanService::getFriendList()
+void DeanService::getFriendMap()
 {
     qInfo() << "获取Hook微信好友列表";
     MyJson json;

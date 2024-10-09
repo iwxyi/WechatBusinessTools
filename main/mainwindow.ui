@@ -97,20 +97,26 @@
      <height>37</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menu">
+   <widget class="QMenu" name="menu_3">
     <property name="title">
-     <string>文件</string>
+     <string>列表</string>
     </property>
+    <addaction name="actionFriends"/>
+    <addaction name="actionGroups"/>
    </widget>
-   <widget class="QMenu" name="menu_2">
-    <property name="title">
-     <string>编辑</string>
-    </property>
-   </widget>
-   <addaction name="menu"/>
-   <addaction name="menu_2"/>
+   <addaction name="menu_3"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionFriends">
+   <property name="text">
+    <string>好友列表</string>
+   </property>
+  </action>
+  <action name="actionGroups">
+   <property name="text">
+    <string>群组列表</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>

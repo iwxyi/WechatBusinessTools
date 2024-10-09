@@ -30,7 +30,7 @@ public:
 
     void getWxList();
     void getWxInfo(QString wxid);
-    void getFriendList();
+    void getFriendMap();
     void getGroupList();
     void getGroupMemberList(QString groupId);
     void sendUserMessage(QString wxid, QString msg);

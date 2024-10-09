@@ -446,3 +446,11 @@ int getRegMatchCount(const QString& text, const QString& pat)
 
     return count;
 }
+
+QString strLeft(QString s, int len)
+{
+    if (s.length() <= len)
+        return s;
+    return s.left(len - 2) + "...";
+}
+
