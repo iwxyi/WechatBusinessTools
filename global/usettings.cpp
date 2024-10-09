@@ -53,7 +53,7 @@ void USettings::setWhiteList_friendWxid(QStringList wxidList)
     this->setValue("us/whiteList_friendWxid", wxidList.join(";"));
 }
 
-void USettings::setWhiteList_friendEnabled(QString wxid, bool enable)
+void USettings::setWhiteList_friendChecked(QString wxid, bool enable)
 {
     if (enable) {
         this->_whiteList_friendWxid.append(wxid);
@@ -63,7 +63,7 @@ void USettings::setWhiteList_friendEnabled(QString wxid, bool enable)
     this->setValue("us/whiteList_friendWxid", this->_whiteList_friendWxid.join(";"));
 }
 
-bool USettings::isWhiteList_friendEnabled(QString wxid)
+bool USettings::isWhiteList_friendChecked(QString wxid)
 {
     return this->_whiteList_friendWxid.contains(wxid);
 }
@@ -79,7 +79,7 @@ void USettings::setWhiteList_groupWxid(QStringList wxidList)
     this->setValue("us/whiteList_groupWxid", wxidList.join(";"));
 }
 
-void USettings::setWhiteList_groupEnabled(QString wxid, bool enable)
+void USettings::setWhiteList_groupChecked(QString wxid, bool enable)
 {
     if (enable) {
         this->_whiteList_groupWxid.append(wxid);
@@ -89,7 +89,7 @@ void USettings::setWhiteList_groupEnabled(QString wxid, bool enable)
     this->setValue("us/whiteList_groupWxid", this->_whiteList_groupWxid.join(";"));
 }
 
-bool USettings::isWhiteList_groupEnabled(QString wxid)
+bool USettings::isWhiteList_groupChecked(QString wxid)
 {
     return this->_whiteList_groupWxid.contains(wxid);
 }
@@ -97,4 +97,26 @@ bool USettings::isWhiteList_groupEnabled(QString wxid)
 QStringList USettings::whiteList_groupWxid()
 {
     return this->_whiteList_groupWxid;
+}
+
+void USettings::setUseWhiteOrBlackList(bool enable)
+{
+    this->_useWhiteOrBlackList = enable;
+}
+
+bool USettings::useWhiteOrBlackList()
+{
+    return this->_useWhiteOrBlackList;
+}
+
+bool USettings::isFriendEnabled(QString wxid)
+{
+    bool checked = _whiteList_friendWxid.contains(wxid);
+    return _useWhiteOrBlackList ? checked : !checked;
+}
+
+bool USettings::isGroupEnabled(QString wxid)
+{
+    bool checked = _whiteList_groupWxid.contains(wxid);
+    return _useWhiteOrBlackList ? checked : !checked;
 }

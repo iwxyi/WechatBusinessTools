@@ -8,6 +8,7 @@
 #include <QTableWidget>
 #include <QCheckBox>
 #include <QLineEdit>
+#include <QPushButton>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -81,10 +82,10 @@ void MainWindow::on_actionFriends_triggered()
             tableWidget->setItem(i, 1, item);
 
             QCheckBox *checkBox = new QCheckBox(tableWidget);
-            checkBox->setChecked(us->isWhiteList_friendEnabled(friendBean.wxid));
+            checkBox->setChecked(us->isWhiteList_friendChecked(friendBean.wxid));
             tableWidget->setCellWidget(i, 2, checkBox);
             connect(checkBox, &QCheckBox::stateChanged, this, [=](int state) {
-                us->setWhiteList_friendEnabled(friendBean.wxid, state == Qt::Checked);
+                us->setWhiteList_friendChecked(friendBean.wxid, state == Qt::Checked);
                 qInfo() << "friendBean.wxid:" << friendBean.wxid << "state:" << state;
             });
         }
@@ -105,9 +106,30 @@ void MainWindow::on_actionFriends_triggered()
         loadFriendList(text);
     });
 
+    // 全选/反选按钮
+    QPushButton *selectAllButton = new QPushButton("全选", widget);
+    QPushButton *selectNoneButton = new QPushButton("反选", widget);
+    connect(selectAllButton, &QPushButton::clicked, this, [=]() {
+        for (int i = 0; i < tableWidget->rowCount(); i++) {
+            QCheckBox* checkBox = (QCheckBox*)tableWidget->cellWidget(i, 2);
+            checkBox->setCheckState(Qt::Checked);
+        }
+    });
+    connect(selectNoneButton, &QPushButton::clicked, this, [=]() {
+        for (int i = 0; i < tableWidget->rowCount(); i++) {
+            QCheckBox* checkBox = (QCheckBox*)tableWidget->cellWidget(i, 2);
+            checkBox->setCheckState(checkBox->checkState() ? Qt::Unchecked : Qt::Checked);
+        }
+    });
+    QHBoxLayout *buttonLayout = new QHBoxLayout();
+    buttonLayout->addWidget(selectAllButton);
+    buttonLayout->addWidget(selectNoneButton);
+    buttonLayout->addStretch();
+
     // 添加表格到布局
     layout->addWidget(tableWidget);
     layout->addWidget(searchLineEdit);
+    layout->addLayout(buttonLayout);
 
     // 自适应宽度
     int totalWidth = 100;
@@ -165,10 +187,10 @@ void MainWindow::on_actionGroups_triggered()
             tableWidget->setItem(i, 1, item);
 
             QCheckBox *checkBox = new QCheckBox(tableWidget);
-            checkBox->setChecked(us->isWhiteList_groupEnabled(groupBean.wxid));
+            checkBox->setChecked(us->isWhiteList_groupChecked(groupBean.wxid));
             tableWidget->setCellWidget(i, 2, checkBox);
             connect(checkBox, &QCheckBox::stateChanged, this, [=](int state) {
-                us->setWhiteList_groupEnabled(groupBean.wxid, state == Qt::Checked);
+                us->setWhiteList_groupChecked(groupBean.wxid, state == Qt::Checked);
                 qInfo() << "groupBean.wxid:" << groupBean.wxid << "state:" << state;
             });
         }
@@ -183,11 +205,31 @@ void MainWindow::on_actionGroups_triggered()
     // 搜索输入框
     QLineEdit *searchLineEdit = new QLineEdit(widget);
     searchLineEdit->setPlaceholderText("搜索群");
-    layout->addWidget(searchLineEdit);
 
-    // 添加表格到布局
+    // 全选/反选按钮
+    QPushButton *selectAllButton = new QPushButton("全选", widget);
+    QPushButton *selectNoneButton = new QPushButton("反选", widget);
+    connect(selectAllButton, &QPushButton::clicked, this, [=]() {
+        for (int i = 0; i < tableWidget->rowCount(); i++) {
+            QCheckBox* checkBox = (QCheckBox*)tableWidget->cellWidget(i, 2);
+            checkBox->setCheckState(Qt::Checked);
+        }
+    });
+    connect(selectNoneButton, &QPushButton::clicked, this, [=]() {
+        for (int i = 0; i < tableWidget->rowCount(); i++) {
+            QCheckBox* checkBox = (QCheckBox*)tableWidget->cellWidget(i, 2);
+            checkBox->setCheckState(checkBox->checkState() ? Qt::Unchecked : Qt::Checked);
+        }
+    });
+    QHBoxLayout *buttonLayout = new QHBoxLayout();
+    buttonLayout->addWidget(selectAllButton);
+    buttonLayout->addWidget(selectNoneButton);
+    buttonLayout->addStretch();
+
+    // 添加到布局
     layout->addWidget(tableWidget);
     layout->addWidget(searchLineEdit);
+    layout->addLayout(buttonLayout);
 
     // 自适应宽度
     int totalWidth = 100;
