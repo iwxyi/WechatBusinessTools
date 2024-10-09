@@ -56,7 +56,6 @@ public slots:
 private:
     QWebSocket *deanWs = nullptr;
 
-    QString nick;
     QList<RequiredData> requiredQueue;
 };
 

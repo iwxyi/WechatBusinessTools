@@ -110,7 +110,11 @@ struct ChatBean
         {
             return "[系统消息]";
         }
-        if (msg.startsWith("<msg>") && msg.endsWith("</msg>"))
+        if (msg.startsWith("<msg><emoji"))
+        {
+            return "[表情包]";
+        }
+        if (msg.startsWith("<msg>") || msg.startsWith("<?xml"))
         {
             return "[xml]";
         }
@@ -135,11 +139,6 @@ struct ChatBean
     bool isSystem() const
     {
         return fromType == 10000;
-    }
-
-    bool isMe() const
-    {
-        return msgSource == 0;
     }
 
     bool isOther() const

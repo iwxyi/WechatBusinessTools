@@ -14,9 +14,14 @@ public:
     void setDeanWxid(QString wxid);
     QString deanWxid();
 
+    void setMaxMessageCount(int count);
+    int maxMessageCount();
+
 private:
     QString _deanServerUrl;
     QString _deanWxid;
+
+    int _maxMessageCount;
 };
 
 extern USettings *us;

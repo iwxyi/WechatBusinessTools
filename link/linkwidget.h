@@ -15,9 +15,11 @@ public:
     explicit LinkWidget(QWidget *parent = nullptr);
     ~LinkWidget();
 
-public slots:
-    void onDeanServerUrlEditFinished();
-    void onDeanWxidEditFinished();
+private slots:
+
+    void on_deanServerUrlEdit_editingFinished();
+
+    void on_deanWxidEdit_editingFinished();
 
 private:
     Ui::LinkWidget *ui;

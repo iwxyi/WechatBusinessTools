@@ -26,9 +26,12 @@ public:
     void insertLatestMessageItem(const ChatBean &chatBean);
     void removeLatestMessageItem(int index);
     void updateLatestMessageItem(int index,const ChatBean &chatBean);
+    void updateAllMessagesByWxid(const QString &wxid);
 
     // 聊天列表
+    void loadMessages(const QString &wxid);
     void addMessage(const QString &nickname, const QString &wxid, const QString &message, ChatDirection direction);
+    void addMessage(const ChatBean& chatBean);
 
 private:
     QWidget* createMessageWidget(const QString &nickname, const QString &wxid, const QString &message, ChatDirection direction);
@@ -36,9 +39,11 @@ private:
 public slots:
     void onNewMessage(const ChatBean &chatBean);
 
+private slots:
+    void on_latestListWidget_currentRowChanged(int currentRow);
+
 private:
     Ui::ChatWidget *ui;
-    QVBoxLayout *chatLayout;
 
     QStringList messageIdList;
     QString currentWxid;

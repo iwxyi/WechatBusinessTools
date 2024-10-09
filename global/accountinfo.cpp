@@ -55,6 +55,16 @@ ChatBean AccountInfo::getLatestChat(QString wxid) const
     return chatMap[wxid].first();
 }
 
+const QList<ChatBean>& AccountInfo::getChatList(QString wxid) const
+{
+    if (!chatMap.contains(wxid))
+    {
+        qWarning() << "获取消息列表失败，wxid:" << wxid;
+        return QList<ChatBean>();
+    }
+    return chatMap.value(wxid);
+}
+
 void AccountInfo::setFriendList(const QMap<QString, FriendBean> &friendMap)
 {
     this->friendMap = friendMap;

@@ -2,6 +2,7 @@
 #include "ui_chatwidget.h"
 #include "signaltransfer.h"
 #include "accountinfo.h"
+#include "usettings.h"
 #include <QLabel>
 #include <QHBoxLayout>
 #include <QDebug>
@@ -11,23 +12,9 @@ ChatWidget::ChatWidget(QWidget *parent)
     , ui(new Ui::ChatWidget)
 {
     ui->setupUi(this);
-    chatLayout = new QVBoxLayout(ui->msgListWidget);
-    chatLayout->setAlignment(Qt::AlignTop);
-    ui->msgListWidget->setLayout(chatLayout);
 
     connect(st, &SignalTransfer::signalNewMessage, this, &ChatWidget::onNewMessage);
-    connect(st, &SignalTransfer::signalGroupMemberListChanged, this, [=](QString groupId) {
-        qInfo() << "更新View群成员信息" << groupId;
-        for (int i = 0; i < messageIdList.size(); i++)
-        {
-            if (messageIdList[i] == groupId)
-            {
-                updateLatestMessageItem(i, ac->getLatestChat(groupId));
-                return;
-            }
-        }
-        qWarning() << "更新View群成员信息失败，未找到聊天记录中的群组，groupId:" << groupId;
-    });
+    connect(st, &SignalTransfer::signalGroupMemberListChanged, this, &ChatWidget::updateAllMessagesByWxid);
 }
 
 ChatWidget::~ChatWidget()
@@ -59,6 +46,13 @@ void ChatWidget::onNewMessage(const ChatBean &chatBean)
         removeLatestMessageItem(index);
         insertLatestMessageItem(chatBean);
     }
+
+    // 当前打开的消息记录
+    if (currentWxid == wxid)
+    {
+        addMessage(chatBean);
+        ui->msgListWidget->scrollToBottom();
+    }
 }
 
 /**
@@ -71,14 +65,24 @@ void ChatWidget::insertLatestMessageItem(const ChatBean &chatBean)
     QString firstMsgLine = chatBean.getMsg().split("\n").first();
     
     QWidget *widget = new QWidget(this);
-    QHBoxLayout *layout = new QHBoxLayout(widget);
+    QVBoxLayout *layout = new QVBoxLayout(widget);
     QLabel *nicknameLabel = new QLabel(chatBean.objectName, widget);
     QLabel *messageLabel = new QLabel(chatBean.senderName + "：" + firstMsgLine, widget);
     nicknameLabel->setObjectName("nicknameLabel");
     messageLabel->setObjectName("messageLabel");
+    nicknameLabel->setStyleSheet("font-weight: bold;");
     layout->addWidget(nicknameLabel);
     layout->addWidget(messageLabel);
     widget->setLayout(layout);
+
+    // 设置昵称标签字体加粗
+    QFont boldFont = nicknameLabel->font();
+    boldFont.setBold(true);
+    nicknameLabel->setFont(boldFont);
+    // 设置消息标签字体颜色为灰色
+    QPalette palette = messageLabel->palette();
+    palette.setColor(QPalette::WindowText, Qt::gray);
+    messageLabel->setPalette(palette);
 
     QListWidgetItem *item = new QListWidgetItem();
     ui->latestListWidget->insertItem(0, item);
@@ -94,7 +98,7 @@ void ChatWidget::updateLatestMessageItem(int index, const ChatBean &chatBean)
 {
     messageIdList[index] = chatBean.getObjectId();
 
-    QString firstMsgLine = chatBean.msg.split("\n").first();
+    QString firstMsgLine = chatBean.getMsg().split("\n").first();
 
     QListWidgetItem *item = ui->latestListWidget->item(index);
     Q_ASSERT(item != nullptr);
@@ -127,12 +131,90 @@ void ChatWidget::removeLatestMessageItem(int index)
 }
 
 /**
+ * 群成员昵称更新时，同步更新所有界面消息文字
+ */
+void ChatWidget::updateAllMessagesByWxid(const QString &wxid)
+{
+    qInfo() << "更新View对象成员信息" << wxid;
+    bool isUpdated = false;
+    for (int i = 0; i < messageIdList.size(); i++)
+    {
+        if (messageIdList[i] == wxid)
+        {
+            updateLatestMessageItem(i, ac->getLatestChat(wxid));
+            isUpdated = true;
+            break;
+        }
+    }
+    if (!isUpdated)
+    {
+        qWarning() << "更新View群成员信息失败，未找到聊天记录中的群组，groupId:" << wxid;
+    }
+
+    // 如果已经打开的是这个消息列表，则更新
+    if (currentWxid == wxid)
+    {
+        loadMessages(wxid);
+    }
+}
+
+void ChatWidget::loadMessages(const QString &wxid)
+{
+    // 清空旧的聊天列表
+    QList<QWidget*> widgets;
+    for (int i = 0; i < ui->msgListWidget->count(); ++i) {
+    QWidget* widget = ui->msgListWidget->itemWidget(ui->msgListWidget->item(i));
+    if (widget) {
+        widget->deleteLater();
+    } else {
+        qWarning() << "未找到要删除的对话控件";
+    }
+    }
+    ui->msgListWidget->clear();
+
+    // 加载消息
+    if (wxid.isEmpty())
+    {
+        qWarning() << "跳过加载消息列表，wxid为空";
+        return;
+    }
+    currentWxid = wxid;
+    QList<ChatBean> chatBeanList = ac->getChatList(wxid);
+    qInfo() << "加载消息列表，wxid:" << wxid << ", 消息数量:" << chatBeanList.size();
+    
+    // 加载最多20条消息
+    int maxCount = us->maxMessageCount();
+    int startIndex = chatBeanList.size() - maxCount;
+    if (startIndex < 0)
+        startIndex = 0;
+    for (int i = startIndex; i < chatBeanList.size(); i++)
+    {
+        addMessage(chatBeanList[i]);
+    }
+
+    // 滚动到底部
+    ui->msgListWidget->scrollToBottom();
+}
+
+/**
  * 添加消息到聊天列表
  */
 void ChatWidget::addMessage(const QString &nickname, const QString &wxid, const QString &message, ChatDirection direction)
 {
     QWidget *messageWidget = createMessageWidget(nickname, wxid, message, direction);
-    chatLayout->addWidget(messageWidget);
+    QListWidgetItem *item = new QListWidgetItem(ui->msgListWidget);
+    ui->msgListWidget->setItemWidget(item, messageWidget);
+    item->setSizeHint(QSize(0, messageWidget->height()));
+}
+
+void ChatWidget::addMessage(const ChatBean &chatBean)
+{
+    ChatDirection direction = ChatDirection::ChatTips;
+    if (chatBean.finalFromWxid == ac->getWxid())
+        direction = ChatDirection::ChatSelf;
+    else
+        direction = ChatDirection::ChatOther;
+    addMessage(chatBean.senderName, chatBean.finalFromWxid, chatBean.getMsg(), direction);
 }
 
 QWidget* ChatWidget::createMessageWidget(const QString &nickname, const QString &wxid, const QString &message, ChatDirection direction)
@@ -142,6 +224,7 @@ QWidget* ChatWidget::createMessageWidget(const QString &nickname, const QString 
 
     if (direction == ChatTips) {
         QLabel *tipsLabel = new QLabel(message, widget);
+        tipsLabel->setObjectName("tipsLabel");
         tipsLabel->setAlignment(Qt::AlignCenter);
         tipsLabel->setStyleSheet("color: gray; font-style: italic;");
         layout->addWidget(tipsLabel);
@@ -166,3 +249,19 @@ QWidget* ChatWidget::createMessageWidget(const QString &nickname, const QString 
     widget->setLayout(layout);
     return widget;
 }
+
+/**
+ * 切换最新消息列表
+ */
+void ChatWidget::on_latestListWidget_currentRowChanged(int currentRow)
+{
+    if (currentRow == -1)
+    {
+        loadMessages("");
+        return;
+    }
+    qInfo() << "切换最新消息列表，currentRow:" << currentRow;
+    QString wxid = messageIdList[currentRow];
+    loadMessages(wxid);
+}
+

@@ -9,6 +9,7 @@ class SignalTransfer : public QObject
 {
     Q_OBJECT
 signals:
+    void signalReconnectWs();
     void signalWxidChanged(QString wxid);
     void signalNickChanged(QString nick);
     void signalNewMessage(ChatBean msg);

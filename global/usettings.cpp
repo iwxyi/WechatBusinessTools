@@ -11,6 +11,7 @@ void USettings::init()
 {
     this->_deanServerUrl = this->getStr("us/deanServerUrl", "ws://192.168.0.103:7778");
     this->_deanWxid = this->getStr("us/deanWxid", "");
+    this->_maxMessageCount = this->getInt("us/maxMessageCount", 20);
 }
 
 void USettings::setDeanServerUrl(QString url)
@@ -32,4 +33,14 @@ void USettings::setDeanWxid(QString wxid)
 QString USettings::deanWxid()
 {
     return this->_deanWxid;
+}
+
+void USettings::setMaxMessageCount(int count)
+{
+    this->_maxMessageCount = count;
+}
+
+int USettings::maxMessageCount()
+{
+    return this->_maxMessageCount;
 }

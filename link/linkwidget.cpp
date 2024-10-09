@@ -27,14 +27,18 @@ LinkWidget::~LinkWidget()
     delete ui;
 }
 
-void LinkWidget::onDeanServerUrlEditFinished()
-{
-    us->setDeanServerUrl(ui->deanServerUrlEdit->text());
-    us->setValue("us/deanServerUrl", ui->deanServerUrlEdit->text());
-}
-
-void LinkWidget::onDeanWxidEditFinished()
+void LinkWidget::on_deanServerUrlEdit_editingFinished()
 {
     us->setDeanWxid(ui->deanWxidEdit->text());
     us->setValue("us/deanWxid", ui->deanWxidEdit->text());
+    emit st->signalReconnectWs();
 }
+
+
+void LinkWidget::on_deanWxidEdit_editingFinished()
+{
+    us->setDeanServerUrl(ui->deanServerUrlEdit->text());
+    us->setValue("us/deanServerUrl", ui->deanServerUrlEdit->text());
+    emit st->signalReconnectWs();
+}
+

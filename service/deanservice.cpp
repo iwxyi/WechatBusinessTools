@@ -24,6 +24,8 @@ void DeanService::init()
     connect(deanWs, &QWebSocket::sslErrors, this, &DeanService::onSslErrors);
 
     connect(this, &DeanService::signalRequiredMessage, this, &DeanService::wsSendTextMessageByQueue);
+
+    connect(st, &SignalTransfer::signalReconnectWs, this, &DeanService::start);
 }
 
 void DeanService::onConnected()
@@ -65,7 +67,8 @@ void DeanService::onSslErrors(const QList<QSslError> &errors)
 void DeanService::start()
 {
     if (deanWs) {
-        deanWs->open(QUrl("ws://192.168.0.103:7778"));
+        qInfo() << "连接Dean服务器:" << us->deanServerUrl();
+        deanWs->open(QUrl(us->deanServerUrl()));
     }
 }
 
@@ -160,7 +163,8 @@ void DeanService::parseRequiredMessage(MyJson json)
             // 设置Hook微信昵称
             if (us->deanWxid() == wxid)
             {
-                this->nick = nick;
+                ac->setWxid(wxid);
+                ac->setNick(nick);
                 qInfo() << "账号信息：ID:" << us->deanWxid() << ",昵称:" << nick << ",端口:" << port;
                 emit st->signalNickChanged(nick);
 
@@ -400,13 +404,13 @@ void DeanService::parseReceivedMessage(MyJson json)
         chatBean.msgId = data.s("msgId");
         chatBean.msgBase64 = data.s("msgBase64");
 
-        if (chatBean.isPrivate())
+        if (chatBean.isPrivate()) // 私聊
         {
             chatBean.senderName = ac->getFriend(chatBean.fromWxid).nick;
             chatBean.objectName = ac->getFriend(chatBean.fromWxid).nick;
             qInfo() << "收到私聊" << chatBean.objectName << chatBean.fromWxid << chatBean.msg.left(100);
         }
-        else if (chatBean.isGroup())
+        else if (chatBean.isGroup()) // 群组
         {
             chatBean.objectName = ac->getGroup(chatBean.fromWxid).nick;
             if (ac->getGroup(chatBean.fromWxid).groupMemberNickMap.contains(chatBean.finalFromWxid))
@@ -421,6 +425,10 @@ void DeanService::parseReceivedMessage(MyJson json)
                 });
             }
             qInfo() << "收到群聊" << chatBean.objectName << chatBean.fromWxid << chatBean.senderName << chatBean.finalFromWxid << chatBean.msgType << chatBean.msg.left(100);
+        }
+        else if (chatBean.isPublic()) // 公众号的不作处理
+        {
+            return;
         }
 
         ac->addChat(chatBean);
