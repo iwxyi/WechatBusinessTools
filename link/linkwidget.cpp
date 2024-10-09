@@ -29,8 +29,7 @@ LinkWidget::~LinkWidget()
 
 void LinkWidget::on_deanServerUrlEdit_editingFinished()
 {
-    us->setDeanWxid(ui->deanWxidEdit->text());
-    us->setValue("us/deanWxid", ui->deanWxidEdit->text());
+    us->setDeanWxid(ui->deanWxidEdit->text());;
     emit st->signalReconnectWs();
 }
 

@@ -65,6 +65,24 @@ const QList<ChatBean>& AccountInfo::getChatList(QString wxid) const
     return chatMap.value(wxid);
 }
 
+QList<ChatBean> AccountInfo::getAllLatestChats() const
+{
+    QList<ChatBean> allChats;
+    for (const QList<ChatBean>& chatList : chatMap.values())
+    {
+        if (!chatList.isEmpty())
+        {
+            allChats.append(chatList.first());
+        }
+    }
+
+    // 排序
+    std::sort(allChats.begin(), allChats.end(), [](const ChatBean& a, const ChatBean& b) {
+        return a.timeStamp > b.timeStamp;
+    });
+    return allChats;
+}
+
 void AccountInfo::setFriendMap(const QMap<QString, FriendBean> &friendMap)
 {
     this->friendMap = friendMap;

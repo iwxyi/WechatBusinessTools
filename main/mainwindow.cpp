@@ -86,7 +86,7 @@ void MainWindow::on_actionFriends_triggered()
             tableWidget->setCellWidget(i, 2, checkBox);
             connect(checkBox, &QCheckBox::stateChanged, this, [=](int state) {
                 us->setWhiteList_friendChecked(friendBean.wxid, state == Qt::Checked);
-                qInfo() << "friendBean.wxid:" << friendBean.wxid << "state:" << state;
+                qDebug() << "调整friendBean.wxid:" << friendBean.wxid << "state:" << state;
             });
         }
     };
@@ -121,10 +121,20 @@ void MainWindow::on_actionFriends_triggered()
             checkBox->setCheckState(checkBox->checkState() ? Qt::Unchecked : Qt::Checked);
         }
     });
+
+    // 黑名单模式
+    QCheckBox *blackModeCheckBox = new QCheckBox("白名单模式", widget);
+    blackModeCheckBox->setToolTip("白名单/黑名单模式\n白名单：只显示选中的好友\n黑名单：显示未选中的好友\n新好友默认不会被选中");
+    blackModeCheckBox->setChecked(us->useWhiteOrBlackList_friend());
+    connect(blackModeCheckBox, &QCheckBox::stateChanged, this, [=](int state) {
+        us->setUseWhiteOrBlackList_friend(state == Qt::Checked);
+    });
+
     QHBoxLayout *buttonLayout = new QHBoxLayout();
     buttonLayout->addWidget(selectAllButton);
     buttonLayout->addWidget(selectNoneButton);
     buttonLayout->addStretch();
+    buttonLayout->addWidget(blackModeCheckBox);
 
     // 添加表格到布局
     layout->addWidget(tableWidget);
@@ -191,7 +201,7 @@ void MainWindow::on_actionGroups_triggered()
             tableWidget->setCellWidget(i, 2, checkBox);
             connect(checkBox, &QCheckBox::stateChanged, this, [=](int state) {
                 us->setWhiteList_groupChecked(groupBean.wxid, state == Qt::Checked);
-                qInfo() << "groupBean.wxid:" << groupBean.wxid << "state:" << state;
+                qDebug() << "调整groupBean.wxid:" << groupBean.wxid << "state:" << state;
             });
         }
     };
@@ -205,6 +215,10 @@ void MainWindow::on_actionGroups_triggered()
     // 搜索输入框
     QLineEdit *searchLineEdit = new QLineEdit(widget);
     searchLineEdit->setPlaceholderText("搜索群");
+    connect(searchLineEdit, &QLineEdit::textChanged, this, [=](const QString &text) {
+        qInfo() << "searchLineEdit:" << text;
+        loadGroupList(text);
+    });
 
     // 全选/反选按钮
     QPushButton *selectAllButton = new QPushButton("全选", widget);
@@ -221,10 +235,20 @@ void MainWindow::on_actionGroups_triggered()
             checkBox->setCheckState(checkBox->checkState() ? Qt::Unchecked : Qt::Checked);
         }
     });
+
+    // 黑名单模式
+    QCheckBox *blackModeCheckBox = new QCheckBox("白名单模式", widget);
+    blackModeCheckBox->setToolTip("白名单/黑名单模式\n白名单：只显示选中的群\n黑名单：显示未选中的群\n新群组默认不会被选中");
+    blackModeCheckBox->setChecked(us->useWhiteOrBlackList_group());
+    connect(blackModeCheckBox, &QCheckBox::stateChanged, this, [=](int state) {
+        us->setUseWhiteOrBlackList_group(state == Qt::Checked);
+    });
+    
     QHBoxLayout *buttonLayout = new QHBoxLayout();
     buttonLayout->addWidget(selectAllButton);
     buttonLayout->addWidget(selectNoneButton);
     buttonLayout->addStretch();
+    buttonLayout->addWidget(blackModeCheckBox);
 
     // 添加到布局
     layout->addWidget(tableWidget);

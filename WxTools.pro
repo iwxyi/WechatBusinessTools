@@ -33,6 +33,7 @@ SOURCES += \
     main/main.cpp \
     main/mainwindow.cpp \
     utils/fileutil.cpp \
+    utils/string_hash.cpp \
     utils/stringutil.cpp \
     service/deanservice.cpp \
     global/accountinfo.cpp
@@ -46,9 +47,11 @@ HEADERS += \
     global/usettings.h \
     link/linkwidget.h \
     main/mainwindow.h \
+    utils/debounce.h \
     utils/dlog.h \
     utils/fileutil.h \
     utils/myjson.h \
+    utils/string_hash.h \
     utils/stringutil.h \
     service/deanservice.h \
     global/accountinfo.h

@@ -57,7 +57,7 @@ struct ChatBean
 
     QString getSenderId() const
     {
-        return finalFromWxid;
+        return finalFromWxid.isEmpty() ? fromWxid : finalFromWxid;
     }
 
     QString getMsg() const

@@ -1,9 +1,10 @@
 #include "mainwindow.h"
-#include "usettings.h"
 #include "signaltransfer.h"
+#include "debounce.h"
 #include <QApplication>
 
 SignalTransfer* st = new SignalTransfer();
+Debounce* debounce = new Debounce();
 
 int main(int argc, char *argv[])
 {

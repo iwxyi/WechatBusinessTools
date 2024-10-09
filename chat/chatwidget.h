@@ -23,10 +23,12 @@ public:
     ~ChatWidget();
 
     // 最新消息列表
-    void insertLatestMessageItem(const ChatBean &chatBean);
+    void insertLatestMessageItem(int index, const ChatBean &chatBean);
     void removeLatestMessageItem(int index);
     void updateLatestMessageItem(int index,const ChatBean &chatBean);
     void updateAllMessagesByWxid(const QString &wxid);
+    void updateAllMessages();
+    void clearAll();
 
     // 聊天列表
     void loadMessages(const QString &wxid);

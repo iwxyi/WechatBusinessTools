@@ -155,7 +155,6 @@ void DeanService::parseRequiredMessage(MyJson json)
             if (us->deanWxid().isEmpty())
             {
                 us->setDeanWxid(wxid);
-                us->setValue("us/deanWxid", wxid);
                 qInfo() << "设置默认的Hook微信:" << us->deanWxid() << nick;
                 emit st->signalWxidChanged(us->deanWxid());
             }

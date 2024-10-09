@@ -3,6 +3,7 @@
 #include "signaltransfer.h"
 #include "accountinfo.h"
 #include "usettings.h"
+#include "debounce.h"
 #include <QLabel>
 #include <QHBoxLayout>
 #include <QDebug>
@@ -15,6 +16,17 @@ ChatWidget::ChatWidget(QWidget *parent)
 
     connect(st, &SignalTransfer::signalNewMessage, this, &ChatWidget::onNewMessage);
     connect(st, &SignalTransfer::signalGroupMemberListChanged, this, &ChatWidget::updateAllMessagesByWxid);
+
+    connect(us, &USettings::signalFriendEnabledChanged, this, [&](QString wxid, bool enabled) {
+        debounce->call("CHAT"_shash, this, [=]{
+            updateAllMessages();
+        });
+    });
+    connect(us, &USettings::signalGroupEnabledChanged, this, [&](QString wxid, bool enabled) {
+        debounce->call("CHAT"_shash, this, [=]{
+            updateAllMessages();
+        });
+    });
 }
 
 ChatWidget::~ChatWidget()
@@ -24,11 +36,24 @@ ChatWidget::~ChatWidget()
 
 void ChatWidget::onNewMessage(const ChatBean &chatBean)
 {
+    // 判断是否是忽略的
+    if (chatBean.isPrivate() && !us->isFriendEnabled(chatBean.getObjectId()))
+    {
+        qDebug() << "跳过忽略好友消息，wxid:" << chatBean.getObjectId() << chatBean.objectName;
+        return;
+    }
+    if (chatBean.isGroup() && !us->isGroupEnabled(chatBean.getObjectId()))
+    {
+        qDebug() << "跳过忽略群消息，groupId:" << chatBean.getObjectId() << chatBean.objectName;
+        return;
+    }
+
+    // 添加消息
     QString wxid = chatBean.getObjectId();
     if (!messageIdList.contains(wxid)) // 如果不在列表中，则插入到最前面
     {
         // qInfo() << "插入最新消息列表，wxid:" << wxid << ", 消息:" << chatBean.msg.left(100);
-        insertLatestMessageItem(chatBean);
+        insertLatestMessageItem(0, chatBean);
         return;
     }
     
@@ -44,7 +69,7 @@ void ChatWidget::onNewMessage(const ChatBean &chatBean)
     {
         // qInfo() << "移动索引" << index << "至最顶上，wxid:" << wxid << ", 消息:" << chatBean.msg.left(100);
         removeLatestMessageItem(index);
-        insertLatestMessageItem(chatBean);
+        insertLatestMessageItem(0, chatBean);
     }
 
     // 当前打开的消息记录
@@ -58,9 +83,11 @@ void ChatWidget::onNewMessage(const ChatBean &chatBean)
 /**
  * 插入最新消息到latestListWidget
  */
-void ChatWidget::insertLatestMessageItem(const ChatBean &chatBean)
+void ChatWidget::insertLatestMessageItem(int index, const ChatBean &chatBean)
 {
-    messageIdList.insert(0, chatBean.getObjectId());
+    if (index == -1)
+        index = messageIdList.size();
+    messageIdList.insert(index, chatBean.getObjectId());
 
     QString firstMsgLine = chatBean.getMsg().split("\n").first();
     
@@ -85,7 +112,7 @@ void ChatWidget::insertLatestMessageItem(const ChatBean &chatBean)
     messageLabel->setPalette(palette);
 
     QListWidgetItem *item = new QListWidgetItem();
-    ui->latestListWidget->insertItem(0, item);
+    ui->latestListWidget->insertItem(index, item);
     ui->latestListWidget->setItemWidget(item, widget);
     widget->adjustSize();
     item->setSizeHint(QSize(0, widget->height()));
@@ -158,6 +185,54 @@ void ChatWidget::updateAllMessagesByWxid(const QString &wxid)
     }
 }
 
+void ChatWidget::updateAllMessages()
+{
+    // 全部清空
+    clearAll();
+
+    // 加载最近消息列表
+    qInfo() << "更新所有消息列表";
+    QList<ChatBean> allChats = ac->getAllLatestChats();
+    for (const ChatBean& chatBean : allChats)
+    {
+        if (chatBean.isPrivate())
+        {
+            if (us->isFriendEnabled(chatBean.getObjectId()))
+            {
+                qDebug() << "显示好友消息，wxid:" << chatBean.getObjectId() << chatBean.objectName;
+                insertLatestMessageItem(-1, chatBean);
+            }
+            else
+            {
+                qDebug() << "跳过好友消息，wxid:" << chatBean.getObjectId() << chatBean.objectName;
+            }
+        }
+        else if (chatBean.isGroup())
+        {
+            if (us->isGroupEnabled(chatBean.getObjectId()))
+            {
+                qDebug() << "显示群消息，groupId:" << chatBean.getObjectId() << chatBean.objectName;
+                insertLatestMessageItem(-1, chatBean);
+            }
+            else
+            {
+                qDebug() << "跳过群消息，groupId:" << chatBean.getObjectId() << chatBean.objectName;
+            }
+        }
+    }
+}
+
+void ChatWidget::clearAll()
+{
+    qInfo() << "清空所有消息列表";
+    messageIdList.clear();
+    ui->latestListWidget->clear();
+    loadMessages("");
+}
+
+/**
+ * 右边的聊天列表
+ */
 void ChatWidget::loadMessages(const QString &wxid)
 {
     // 清空旧的聊天列表
